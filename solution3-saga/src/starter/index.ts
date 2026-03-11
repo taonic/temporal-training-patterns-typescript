@@ -1,6 +1,6 @@
 import { Client } from '@temporalio/client';
 import { travelBookingWorkflow } from '../workflow';
-import type { BookingRequest } from '../../exercise3/src/activities';
+import type { BookingRequest } from '../activities';
 
 async function main() {
   const client = new Client();

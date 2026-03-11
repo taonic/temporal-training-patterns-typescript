@@ -1,13 +1,19 @@
 import { proxyActivities } from '@temporalio/workflow';
 import type * as activities from './activities';
-import type { BookingRequest, BookingResult } from './activities';
+import type { BookingRequest } from './activities';
+
+export interface BookingResult {
+  flightBookingId: string;
+  hotelBookingId: string;
+  carBookingId: string;
+}
 
 const { bookFlight, cancelFlight, bookHotel, cancelHotel, bookCar, cancelCar } =
   proxyActivities<typeof activities>({ startToCloseTimeout: '10 seconds' });
 
 type Compensation = () => Promise<void>;
 
-export async function travelBookingWorkflow(request: BookingRequest): Promise<BookingResult> {
+export async function travelBookingWorkflow(request: BookingRequest): Promise<BookingResult|null> {
   const compensations: Compensation[] = [];
 
   try {
@@ -25,6 +31,6 @@ export async function travelBookingWorkflow(request: BookingRequest): Promise<Bo
     for (const compensation of compensations) {
       await compensation();
     }
-    throw err;
+    return null;
   }
 }

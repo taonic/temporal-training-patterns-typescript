@@ -35,6 +35,5 @@ export async function travelBookingWorkflow(request: BookingRequest): Promise<Bo
     return { flightBookingId, hotelBookingId, carBookingId };
   } catch (err) {
     // TODO: Run compensations in reverse order
-    throw err;
   }
 }
