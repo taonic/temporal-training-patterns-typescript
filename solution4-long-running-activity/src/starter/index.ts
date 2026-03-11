@@ -3,7 +3,7 @@ import { longRunningWorkflow } from '../workflow';
 
 async function main() {
   const client = new Client();
-  const items = Array.from({ length: 20 }, (_, i) => `item-${i + 1}`);
+  const items = Array.from({ length: 10 }, (_, i) => `item-${i + 1}`);
 
   const handle = await client.workflow.start(longRunningWorkflow, {
     workflowId: `long-running-${Date.now()}`,
