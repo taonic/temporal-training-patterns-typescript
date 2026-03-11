@@ -17,8 +17,8 @@ export async function initTransaction(request: TransactionRequest): Promise<Tran
 }
 
 export async function completeTransaction(tx: Transaction): Promise<Transaction> {
-  // Simulate slow processing (2-3s)
-  await new Promise((r) => setTimeout(r, 2000));
+  // Simulate slow processing (5s)
+  await new Promise((r) => setTimeout(r, 5000));
   return { ...tx, status: 'completed' };
 }
 
