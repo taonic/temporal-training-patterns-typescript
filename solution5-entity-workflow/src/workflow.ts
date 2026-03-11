@@ -1,9 +1,15 @@
 import { proxyActivities, defineSignal, defineQuery, defineUpdate, setHandler, condition, continueAsNew } from '@temporalio/workflow';
 import type * as activities from './activities';
 
+export enum AccountStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  DELETED = 'DELETED',
+}
+
 export interface UserState {
   userId: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  status: AccountStatus;
   profile: Record<string, string>;
   operationCount: number;
 }
@@ -17,23 +23,23 @@ export const deleteSignal = defineSignal('delete');
 export const updateProfileUpdate = defineUpdate<void, [Record<string, string>]>('updateProfile');
 export const getStateQuery = defineQuery<UserState>('getState');
 
-const CONTINUE_AS_NEW_THRESHOLD = 100;
+const CONTINUE_AS_NEW_THRESHOLD = 20;
 
 export async function userAccountWorkflow(userId: string): Promise<void> {
-  const state: UserState = { userId, status: 'ACTIVE', profile: {}, operationCount: 0 };
+  const state: UserState = { userId, status: AccountStatus.ACTIVE, profile: {}, operationCount: 0 };
 
   setHandler(suspendSignal, () => {
-    state.status = 'SUSPENDED';
+    state.status = AccountStatus.SUSPENDED;
     state.operationCount++;
   });
 
   setHandler(deleteSignal, () => {
-    state.status = 'DELETED';
+    state.status = AccountStatus.DELETED;
     state.operationCount++;
   });
 
   setHandler(updateProfileUpdate, async (newProfile: Record<string, string>) => {
-    if (state.status === 'DELETED') throw new Error('Account is deleted');
+    if (state.status === AccountStatus.DELETED) throw new Error('Account is deleted');
     await persistProfile(userId, newProfile);
     state.profile = { ...state.profile, ...newProfile };
     state.operationCount++;
@@ -44,6 +50,6 @@ export async function userAccountWorkflow(userId: string): Promise<void> {
 
   setHandler(getStateQuery, () => state);
 
-  await condition(() => state.status === 'DELETED');
+  await condition(() => state.status === AccountStatus.DELETED);
   await sendNotification(userId, 'Account deleted');
 }

@@ -5,9 +5,15 @@ const { sendNotification, persistProfile } = proxyActivities<typeof activities>(
   startToCloseTimeout: '10 seconds',
 });
 
+export enum AccountStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  DELETED = 'DELETED',
+}
+
 export interface UserState {
   userId: string;
-  status: 'ACTIVE' | 'SUSPENDED' | 'DELETED';
+  status: AccountStatus;
   profile: Record<string, string>;
   operationCount: number;
 }
@@ -22,19 +28,19 @@ export const deleteSignal = defineSignal('delete');
 export const updateProfileUpdate = defineUpdate<void, [Record<string, string>]>('updateProfile');
 export const getStateQuery = defineQuery<UserState>('getState');
 
-const CONTINUE_AS_NEW_THRESHOLD = 100;
+const CONTINUE_AS_NEW_THRESHOLD = 20;
 
 export async function userAccountWorkflow(userId: string): Promise<void> {
   const state: UserState = {
     userId,
-    status: 'ACTIVE',
+    status: AccountStatus.ACTIVE,
     profile: {},
     operationCount: 0,
   };
 
   // TODO: Set up signal handlers for suspendSignal and deleteSignal
-  // - suspendSignal: set state.status = 'SUSPENDED', increment operationCount
-  // - deleteSignal: set state.status = 'DELETED', increment operationCount
+  // - suspendSignal: set state.status = AccountStatus.SUSPENDED, increment operationCount
+  // - deleteSignal: set state.status = AccountStatus.DELETED, increment operationCount
 
   // TODO: Set up update handler for updateProfileUpdate
   // - Validate not deleted
@@ -46,6 +52,6 @@ export async function userAccountWorkflow(userId: string): Promise<void> {
   // TODO: Set up query handler for getStateQuery returning state
 
   // Wait until deleted
-  await condition(() => state.status === 'DELETED');
+  await condition(() => state.status === AccountStatus.DELETED);
   await sendNotification(userId, 'Account deleted');
 }
